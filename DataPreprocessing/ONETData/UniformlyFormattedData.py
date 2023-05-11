@@ -111,7 +111,8 @@ class UniformlyFormattedData:
         agg_invariant_cols = {col: identity_map for col in cols_invariant}
 
         # Aggregation sum columns
-        agg_mean_cols = {'Data Value': 'mean'}
+        def mean_(x): return np.mean(x.astype(float))
+        agg_mean_cols = {'Data Value': mean_}
 
         # Aggregate data
         agg_specs = {**agg_invariant_cols, **agg_mean_cols}
@@ -139,5 +140,3 @@ if __name__ == '__main__':
     occ_crosswalk = ConsistentSOCCrosswalk(crosswalk_data)
     f = UniformlyFormattedData(raw_data=r, occ_crosswalk=occ_crosswalk)
     f.load()
-
-    print(r)

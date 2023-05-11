@@ -2,13 +2,13 @@ import os
 
 import pandas as pd
 
-from config import DATA_PATH
+from DataPreprocessing.DataIO import DataIO
 from DataPreprocessing.RawData import RawData
 
 
 class RawDataONET(RawData):
     def __init__(self, year: int):
-        folder = DATA_PATH + f'/OriginalData/ONETData/onet{year}'
+        folder = DataIO.raw_onet_data_folder(year=year)
         super().__init__(year=year, folder=folder)
 
     def _get_data(self, filename_startswith: str) -> pd.DataFrame:

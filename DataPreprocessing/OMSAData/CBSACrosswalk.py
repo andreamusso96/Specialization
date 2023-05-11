@@ -1,13 +1,14 @@
 from typing import Dict, Set
-from config import DATA_PATH
+
 import pandas as pd
 import numpy as np
+
+from DataPreprocessing.DataIO import DataIO
 
 
 class CrosswalkFile:
     def __init__(self):
-        self.file_name = 'cbsa_crosswalk.xls'
-        self.file_path = f'{DATA_PATH}/OriginalData/OMSAData/{self.file_name}'
+        self.file_path = DataIO.cbsa_crosswalk_file()
         self.data = None
 
     def load(self):

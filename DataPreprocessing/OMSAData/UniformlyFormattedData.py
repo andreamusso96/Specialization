@@ -46,8 +46,10 @@ class UniformlyFormattedData:
         self._set_year()
         self._set_column_names()
         self._drop_unnecessary_columns()
+        self._set_prim_state()
         self._drop_rows_with_missing_values()
         self._drop_non_detailed_occupations()
+        self._drop_occ_codes_not_in_crosswalk()
         self._set_high_wage_values()
         self._set_column_types()
         self._set_consistent_soc_codes()
@@ -56,6 +58,7 @@ class UniformlyFormattedData:
         self._set_consistent_cbsa_codes()
         self._set_consistent_cbsa_names()
         self._group_duplicate_consistent_cbsa_codes()
+        self._cbsa_fips_to_string()
         self._sort_data()
 
     def _concat_data(self):
@@ -67,6 +70,10 @@ class UniformlyFormattedData:
     def _set_column_names(self):
         rename_columns = {old_name: self._get_new_column_name(col=old_name) for old_name in self.data.columns}
         self.data.rename(columns=rename_columns, inplace=True)
+
+    def _set_prim_state(self):
+        # In the base case we do nothing. For 2019 (see UniformlyFormattedData2019) we compute the primary state from the cbsa_name
+        pass
 
     def _get_new_column_name(self, col: str) -> str:
         cname = col.lower()
@@ -88,6 +95,12 @@ class UniformlyFormattedData:
     def _drop_non_detailed_occupations(self):
         detailed_occupations = self.data['occ_code'].apply(self._is_detailed_occupation)
         self.data.drop(index=self.data[~detailed_occupations].index, inplace=True)
+
+    def _drop_occ_codes_not_in_crosswalk(self):
+        def occ_code_in_crosswalk(code: str) -> bool:
+            return self.occ_crosswalk.soc_code_in_crosswalk(soc_code=code, soc_version=self.soc_version)
+        codes_in_crosswalk = self.data['occ_code'].apply(occ_code_in_crosswalk)
+        self.data.drop(index=self.data[~codes_in_crosswalk].index, inplace=True)
 
     def _set_high_wage_values(self):
         hourly, annual = YearSpecificDataAttributes.get_high_wage_values(year=self.year)
@@ -135,7 +148,8 @@ class UniformlyFormattedData:
         agg_invariant_cols = {col: identity_map for col in cols_invariant}
 
         # Aggregation sum columns
-        agg_sum_cols = {'tot_emp': 'sum'}
+        def sum_(x): return np.sum(x.astype(float))
+        agg_sum_cols = {'tot_emp': sum_}
 
         # Aggregation weighted mean column
         cols_weighted_mean = ['emp_prse', 'h_mean', 'a_mean', 'mean_prse', 'h_pct10', 'h_pct25', 'h_median', 'h_pct75',
@@ -149,6 +163,9 @@ class UniformlyFormattedData:
         agg_specs = {**agg_invariant_cols, **agg_sum_cols, **agg_weighted_mean_cols}
         aggregated_date = grouped_data.agg(agg_specs)
         return aggregated_date.reset_index()
+
+    def _cbsa_fips_to_string(self):
+        self.data['cbsa_fips'] = self.data['cbsa_fips'].astype(int).astype(str)
 
     def _sort_data(self):
         self.data.sort_values(by=['cbsa_fips', 'occ_code', 'year'], inplace=True)
@@ -171,17 +188,13 @@ class UniformlyFormattedData2019(UniformlyFormattedData):
     def __init__(self, raw_data: RawDataOMSA, occ_crosswalk: ConsistentSOCCrosswalk, cbsa_crosswalk: ConsistentCBSACrosswalk):
         super().__init__(raw_data=raw_data, occ_crosswalk=occ_crosswalk, cbsa_crosswalk=cbsa_crosswalk)
 
-    def load(self):
-        super().load()
-        self._set_prim_state()
-
     def _set_prim_state(self):
-        cbsa_names = self.data['cbsa_name'].values[0]
+        cbsa_names = self.data['cbsa_name'].values
         prim_states = [self._extract_prim_state_from_cbsa_name(cbsa_name=cbsa_name) for cbsa_name in cbsa_names]
-        self.data.assign(prim_state=prim_states, inplace=True)
+        self.data['prim_state'] = prim_states
 
     @staticmethod
     def _extract_prim_state_from_cbsa_name(cbsa_name: str):
-        states = cbsa_name.split(', ')[1]
+        states = cbsa_name.split(',')[1]
         prim_state = states.split('-')[0]
-        return prim_state
+        return prim_state.strip()

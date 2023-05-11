@@ -1,7 +1,7 @@
 import pandas as pd
 from tqdm import tqdm
 
-from config import DATA_PATH
+from DataPreprocessing.DataIO import DataIO
 from DataPreprocessing.OMSAData.RawData import RawDataOMSA
 from DataPreprocessing.OMSAData.UniformlyFormattedData import UniformlyFormattedData, UniformlyFormattedData2019
 from DataPreprocessing.SOC.ConsistentCrosswalk import ConsistentSOCCrosswalk, CrosswalkData
@@ -12,14 +12,14 @@ class Pipeline:
     def __init__(self, year_start: int = 2005, year_end: int = 2021, path_save: str=None):
         self.years = list(range(year_start, year_end+1))
         if path_save is None:
-            self.path_save = DATA_PATH + '/ProcessedData/omsa_data.xlsx'
+            self.path_save = DataIO.processed_omsa_data_file()
         else:
             self.path_save = path_save
 
     def run(self) -> pd.DataFrame:
         formatted_data = self._load_formatted_data()
         data = pd.concat([f.data for f in formatted_data], axis=0, join='outer', ignore_index=True)
-        data.to_excel(self.path_save)
+        data.to_csv(self.path_save, index=False)
         return data
 
     def _load_formatted_data(self):
