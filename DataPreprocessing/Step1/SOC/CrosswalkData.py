@@ -1,16 +1,18 @@
 import pandas as pd
 
-from config import DATA_PATH
-from DataPreprocessing.Step1.SOC.Utils import Columns
+from DataPreprocessing.DataIO import DataIO
+from DataPreprocessing.Step1.SOC.Utils import Columns, SOCCrosswalkFile
 
 
 class CrosswalkFile:
-    def __init__(self, file_name: str):
-        self.file_path = f'{DATA_PATH}/OriginalData/SOC/{file_name}'
+    def __init__(self, file_name: str, header: int = 0, sheet_name: int = 0):
+        self.file_path = DataIO.soc_crosswalk_file(file_name=file_name)
+        self.header = header
+        self.sheet_name = sheet_name
         self.data = None
 
     def _read_excel(self):
-        pass
+        return DataIO.load(file_path=self.file_path, header=self.header, sheet_name=self.sheet_name)
 
     def _format_columns(self):
         pass
@@ -31,12 +33,7 @@ class CrosswalkFile:
 
 class SOC2000toSOC2010(CrosswalkFile):
     def __init__(self):
-        file_name = 'soc_2000_to_2010_crosswalk.xls'
-        super().__init__(file_name=file_name)
-
-    def _read_excel(self):
-        df = pd.read_excel(io=self.file_path, header=6, sheet_name=0)
-        return df
+        super().__init__(file_name=SOCCrosswalkFile.soc_2000_to_2010, header=6)
 
     def _format_columns(self):
         col_map = {'2000 SOC code': Columns.soc_2000_code, '2000 SOC title': Columns.soc_2000_title,
@@ -49,11 +46,7 @@ class SOC2000toSOC2010(CrosswalkFile):
 
 class SOC2010toSOC2018(CrosswalkFile):
     def __init__(self):
-        super().__init__(file_name='soc_2010_to_2018_crosswalk.xlsx')
-
-    def _read_excel(self):
-        df = pd.read_excel(io=self.file_path, header=8, sheet_name=0)
-        return df
+        super().__init__(file_name=SOCCrosswalkFile.soc_2010_to_2018, header=8)
 
     def _format_columns(self):
         col_map = {'2010 SOC Code': Columns.soc_2010_code, '2010 SOC Title': Columns.soc_2010_title,
@@ -63,11 +56,7 @@ class SOC2010toSOC2018(CrosswalkFile):
 
 class Hybrid2010and2011(CrosswalkFile):
     def __init__(self):
-        super().__init__(file_name='2010_and_2011_oes_classification.xls')
-
-    def _read_excel(self):
-        df = pd.read_excel(io=self.file_path, header=9, sheet_name=1)
-        return df
+        super().__init__(file_name=SOCCrosswalkFile.hybrid_2010_and_2011, header=9, sheet_name=1)
 
     def _format_columns(self):
         col_map = {'OES 2010 code': Columns.hybrid_2010_2011_code, 'OES 2010 Title ': Columns.hybrid_2010_2011_title,
@@ -82,11 +71,7 @@ class Hybrid2010and2011(CrosswalkFile):
 
 class Hybrid2019and2020(CrosswalkFile):
     def __init__(self):
-        super().__init__(file_name='oes_2019_hybrid_structure.xlsx')
-
-    def _read_excel(self):
-        df = pd.read_excel(io=self.file_path, header=5, sheet_name=0)
-        return df
+        super().__init__(file_name=SOCCrosswalkFile.hybrid_2019_and_2020, header=5)
 
     def _format_columns(self):
         col_map = {'OES 2019 Estimates Code': Columns.hybrid_2019_2020_code,

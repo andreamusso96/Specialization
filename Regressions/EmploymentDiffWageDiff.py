@@ -2,7 +2,7 @@ from typing import Dict, Tuple
 
 import pandas as pd
 
-from DataPreprocessing.Step2.EmploymentByOccDistance import EmploymentByOccDistance
+from DataPreprocessing.Step2.EmploymentByOccDistanceCalculator import EmploymentByOccDistance
 from Regressions.Regression import Regression
 
 
@@ -36,6 +36,11 @@ class EmploymentDiffWageDiff(Regression):
             emp_growth_within_dist_ranges[dist_range] = emp_growth_within_dist_range
 
         return emp_growth_within_dist_ranges
+
+
+if __name__ == '__main__':
+    from DataPreprocessing.Step2.OMSAData import OMSAData
+    omsa_data =
 
 
 

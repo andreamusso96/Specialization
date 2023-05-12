@@ -8,7 +8,6 @@ from DataPreprocessing.DataIO import DataIO
 
 class OccupationNetwork:
     def __init__(self):
-        self.file_path = DataIO.processed_onet_data_file()
         self.network = None
 
     def get_all_occ_codes(self):
@@ -33,7 +32,7 @@ class OccupationNetwork:
         return codes_within_interval
 
     def load(self):
-        onet_data = pd.read_excel(io=self.file_path)
+        onet_data = DataIO.load(file_path=DataIO.processed_onet_data_file())
         self.network = self._build_network(onet_data=onet_data)
         return self.network
 

@@ -6,7 +6,7 @@ from DataPreprocessing.Step2.OccupationNetwork import OccupationNetwork
 from DataPreprocessing.Step2.OMSAData import OMSAData
 
 
-class SpecializationIndex:
+class SpecializationIndexCalculator:
     def __init__(self, omsa_data: OMSAData, occ_network: OccupationNetwork):
         self.omsa_data = omsa_data
         self.occ_network = occ_network

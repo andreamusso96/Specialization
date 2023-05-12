@@ -8,11 +8,10 @@ from DataPreprocessing.DataIO import DataIO
 
 class CrosswalkFile:
     def __init__(self):
-        self.file_path = DataIO.cbsa_crosswalk_file()
         self.data = None
 
     def load(self):
-        self.data = pd.read_excel(io=self.file_path, header=2, skipfooter=4, sheet_name=0)
+        self.data = DataIO.load(file_path=DataIO.cbsa_crosswalk_file(), header=2, skipfooter=4, sheet_name=0)
         return self.data
 
 
