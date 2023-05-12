@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from DataPreprocessing.Step1.OMSAData.RawData import RawDataOMSA
 from DataPreprocessing.Step1.SOC.ConsistentCrosswalk import ConsistentSOCCrosswalk, CrosswalkData
-from DataPreprocessing.Step1.OMSAData.CBSACrosswalk import ConsistentCBSACrosswalk
+from DataPreprocessing.Step1.CBSA.CBSACrosswalk import ConsistentCBSACrosswalk
 
 
 class YearSpecificDataAttributes:

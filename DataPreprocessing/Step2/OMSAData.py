@@ -15,3 +15,6 @@ class OMSAData:
     def load(self) -> pd.DataFrame:
         self.data = DataIO.load(file_path=DataIO.processed_omsa_data_file(), dtype=self.dtypes)
         return self.data
+
+    def cbsas_where_occ_exists(self, occ_code: str) -> pd.DataFrame:
+        return self.data[self.data['occ_code'] == occ_code]['cbsa_fips'].unique()

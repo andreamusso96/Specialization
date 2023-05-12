@@ -8,8 +8,8 @@ class SpecializationIndex:
         self.occ_cbsa = None
 
     def load(self):
-        self.cbsa = DataIO.load(file_path=DataIO.specialization_index_cbsas_file())
-        self.occ_cbsa = DataIO.load(file_path=DataIO.specialization_index_occs_cbsas_file())
+        self.cbsa = DataIO.load(file_path=DataIO.specialization_index_cbsas_file(), index_col=0)
+        self.occ_cbsa = DataIO.load(file_path=DataIO.specialization_index_occs_cbsas_file(), index_col=0)
 
 
 if __name__ == '__main__':

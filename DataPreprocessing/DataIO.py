@@ -42,6 +42,10 @@ class DataIO:
     def employment_by_occ_distance_folder():
         return f'{DataIO.processed_data_folder()}/EmploymentByOccDistance'
 
+    @staticmethod
+    def raw_bea_data_folder():
+        return f'{DataIO.original_data_folder()}/BEAData'
+
     # FILES
     @staticmethod
     def cbsa_crosswalk_file():
@@ -53,6 +57,16 @@ class DataIO:
         return f'{DataIO.soc_data_folder()}/{file_name}'
 
     @staticmethod
+    def bea_gdp_file():
+        file_name = 'bea_gdp.xlsx'
+        return f'{DataIO.raw_bea_data_folder()}/{file_name}'
+
+    @staticmethod
+    def bea_population_income_file():
+        file_name = 'bea_population_income.xlsx'
+        return f'{DataIO.raw_bea_data_folder()}/{file_name}'
+
+    @staticmethod
     def processed_omsa_data_file():
         file_name = 'omsa_data.csv'
         return f'{DataIO.processed_data_folder()}/{file_name}'
@@ -60,6 +74,11 @@ class DataIO:
     @staticmethod
     def processed_onet_data_file():
         file_name = 'onet_data.xlsx'
+        return f'{DataIO.processed_data_folder()}/{file_name}'
+
+    @staticmethod
+    def processed_bea_data_file():
+        file_name = 'bea_data.xlsx'
         return f'{DataIO.processed_data_folder()}/{file_name}'
 
     @staticmethod
@@ -84,15 +103,15 @@ class DataIO:
             raise ValueError(f'Unknown file extension: {file_path}')
 
     @staticmethod
-    def load_dict(keys: List[Any], path: str) -> Dict[Any, pd.DataFrame]:
+    def load_dict(keys: List[Any], path: str, **kwargs) -> Dict[Any, pd.DataFrame]:
         data_dict = {}
         for key in keys:
-            data_dict[key] = DataIO.load(file_path=f'{path}/{DataIO._key_to_str(key=key)}.csv')
+            data_dict[key] = DataIO.load(file_path=f'{path}/{DataIO._key_to_str(key=key)}.csv', **kwargs)
         return data_dict
 
     @staticmethod
     def load_folder(folder: str, file_name_starts_with: str = "", **kwargs) -> Dict[str, pd.DataFrame]:
-        files_in_folder = os.listdir(path=folder)
+        files_in_folder = [f_name for f_name in os.listdir(path=folder) if not (f_name.startswith('.') or f_name.startswith('~'))]
         file_paths = [folder + f'/{f_name}' for f_name in files_in_folder if f_name.lower().startswith(file_name_starts_with)]
         data_files = {}
         for fpath in file_paths:
@@ -101,18 +120,18 @@ class DataIO:
         return data_files
 
     @staticmethod
-    def save(data: pd.DataFrame, path: str):
+    def save(data: pd.DataFrame, path: str, index: bool = False, **kwargs):
         if path.endswith('.csv'):
-            data.to_csv(path, index=False)
+            data.to_csv(path, index=index, **kwargs)
         elif path.endswith('.xlsx') or path.endswith('.xls'):
-            data.to_excel(path, index=False)
+            data.to_excel(path, index=index, **kwargs)
         else:
             raise ValueError(f'Unknown file extension: {path}')
 
     @staticmethod
-    def save_dict(data_dict: Dict[Any, pd.DataFrame], path: str):
+    def save_dict(data_dict: Dict[Any, pd.DataFrame], path: str, **kwargs):
         for key, value in data_dict.items():
-            DataIO.save(data=value, path=f'{path}/{DataIO._key_to_str(key=key)}.csv')
+            DataIO.save(data=value, path=f'{path}/{DataIO._key_to_str(key=key)}.csv', **kwargs)
 
     @staticmethod
     def _key_to_str(key: Any):

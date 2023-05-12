@@ -34,19 +34,19 @@ def run_pipeline():
     omsa_data = OMSAData()
     omsa_data.load()
 
-    """print('STEP 2: Computing employment by occ distance')
+    print('STEP 2: Computing employment by occ distance')
 
     quantiles = np.array([0, 0.25, 0.5, 0.75, 1])
     employment_by_occ_distance = EmploymentByOccDistanceCalculator(occ_network=onet_network_data, omsa_data=omsa_data, quantiles=quantiles)
     employment_by_occ_distance = employment_by_occ_distance.compute()
-    DataIO.save_dict(data_dict=employment_by_occ_distance, path=DataIO.employment_by_occ_distance_folder())"""
+    DataIO.save_dict(data_dict=employment_by_occ_distance, path=DataIO.employment_by_occ_distance_folder(), index=True)
 
     print('STEP 2: Computing specialization indices')
-
+    """
     specialization_index = SpecializationIndexCalculator(occ_network=onet_network_data, omsa_data=omsa_data)
     specialization_index_occs_cbsas, specialization_index_cbsas = specialization_index.compute()
-    DataIO.save(data=specialization_index_cbsas, path=DataIO.specialization_index_cbsas_file())
-    DataIO.save(data=specialization_index_occs_cbsas, path=DataIO.specialization_index_occs_cbsas_file())
+    DataIO.save(data=specialization_index_cbsas, path=DataIO.specialization_index_cbsas_file(), index=True)
+    DataIO.save(data=specialization_index_occs_cbsas, path=DataIO.specialization_index_occs_cbsas_file(), index=True)"""
 
     print('STEP 2: Completed')
     print('Pipeline Completed')

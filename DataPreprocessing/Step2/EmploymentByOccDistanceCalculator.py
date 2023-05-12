@@ -41,7 +41,9 @@ class EmploymentByOccDistanceCalculator:
 
     def _table_emp_within_dist_range_from_occ__loc_by_year(self, occ_code: str, a: float, b: float) -> pd.DataFrame:
         occs_within_dist_range_from_occ = self.occ_network.get_occ_codes_within_distance_interval(code=occ_code, a=a, b=b)
-        emp_data = self.omsa_data.data.loc[self.omsa_data.data['occ_code'].isin(occs_within_dist_range_from_occ)]
-        grouped_emp_data = emp_data.groupby(by=['cbsa_fips', 'year']).agg({'tot_emp': 'sum'}).reset_index()
+        cbsas_where_occ_exists = self.omsa_data.cbsas_where_occ_exists(occ_code=occ_code)
+        emp_data = self.omsa_data.data.loc[(self.omsa_data.data['occ_code'].isin(occs_within_dist_range_from_occ)) & (self.omsa_data.data['cbsa_fips'].isin(cbsas_where_occ_exists))]
+        def sum_(x): return np.sum(x.astype(float))
+        grouped_emp_data = emp_data.groupby(by=['cbsa_fips', 'year']).agg({'tot_emp': sum_}).reset_index()
         emp_within_dist_range = grouped_emp_data.pivot(columns='year', index='cbsa_fips', values='tot_emp').fillna(method='bfill', axis=1).fillna(0)
         return emp_within_dist_range

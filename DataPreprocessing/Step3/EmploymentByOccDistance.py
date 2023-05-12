@@ -11,12 +11,9 @@ class EmploymentByOccDistance:
 
     def load(self):
         keys = [(self.quantiles[i], self.quantiles[i+1]) for i in range(len(self.quantiles) - 1)]
-        self.data = DataIO.load_dict(keys=keys, path=DataIO.employment_by_occ_distance_folder())
+        self.data = DataIO.load_dict(keys=keys, path=DataIO.employment_by_occ_distance_folder(), index_col=[0, 1])
         return self.data
 
 
 if __name__ == '__main__':
-    quantiles = np.array([0,0.25,0.5,0.75, 1])
-    e = EmploymentByOccDistance(quantiles=quantiles)
-    e.load()
-    print(e.data)
+    EmploymentByOccDistance(quantiles=np.array([0, 0.25, 0.5, 0.75, 1])).load()
