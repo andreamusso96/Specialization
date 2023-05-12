@@ -2,19 +2,24 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from DataProcessing.OccupationNetwork import OccupationNetwork
-from DataProcessing.OMSAData import OMSAData
+from DataPreprocessing.Step2.OccupationNetwork import OccupationNetwork
+from DataPreprocessing.Step2.OMSAData import OMSAData
 
 
 class SpecializationIndex:
     def __init__(self, omsa_data: OMSAData, occ_network: OccupationNetwork):
         self.omsa_data = omsa_data
         self.occ_network = occ_network
+        self.specialization_index_occs_cbsas = None
+        self.specialization_index_cbsas = None
+
+    def compute(self):
         self.specialization_index_occs_cbsas = self._compute_specialization_index_occs_cbsas()
         self.specialization_index_cbsas = self._compute_specialization_index_cbsas()
+        return self.specialization_index_occs_cbsas, self.specialization_index_cbsas
 
     def _compute_specialization_index_cbsas(self) -> pd.DataFrame:
-        cbsas = self.omsa_data.data['cbsa_fips'].unique()[:10]
+        cbsas = self.omsa_data.data['cbsa_fips'].unique()
         specialization_indices = []
         for cbsa_fips in cbsas:
             occ_probs_cbsa = self._occ_probs_cbsa(cbsa_fips=cbsa_fips)
@@ -29,11 +34,11 @@ class SpecializationIndex:
 
     def _compute_specialization_index_occs_cbsas(self) -> pd.DataFrame:
         specialization_indices = []
-        cbsas = self.omsa_data.data['cbsa_fips'].unique()[:10]
+        cbsas = self.omsa_data.data['cbsa_fips'].unique()
         occ_codes = self.occ_network.get_all_occ_codes()
-        years = self.omsa_data.data['year'].unique()
         for cbsa_fips in tqdm(cbsas):
             occ_probs_cbsa = self._occ_probs_cbsa(cbsa_fips=cbsa_fips)
+            years = occ_probs_cbsa.columns
             for occ_code in occ_codes:
                 for year in years:
                     specialization_index_occ_cbsa = self._compute_specialization_index_occ_cbsa(occ_code=occ_code, occ_probs_cbsa=occ_probs_cbsa[year].values)
@@ -59,16 +64,6 @@ class SpecializationIndex:
         emp_counts_cbsa = self.omsa_data.data.loc[self.omsa_data.data['cbsa_fips'] == cbsa_fips][['occ_code', 'tot_emp', 'year']]
         emp__occ_by_year = emp_counts_cbsa.pivot(index='occ_code', columns='year', values='tot_emp').fillna(method='bfill', axis=1).fillna(0)
         return emp__occ_by_year
-
-
-if __name__ == '__main__':
-    omsa_data = OMSAData()
-    omsa_data.load()
-    occ_network = OccupationNetwork()
-    occ_network.load()
-    specialization_index = SpecializationIndex(omsa_data=omsa_data, occ_network=occ_network)
-
-
 
 
 

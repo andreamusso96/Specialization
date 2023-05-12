@@ -3,9 +3,8 @@ from typing import List, Set, Tuple
 import numpy as np
 import pandas as pd
 
-from config import DATA_PATH
-from DataPreprocessing.SOC.CrosswalkData import CrosswalkData
-from DataPreprocessing.SOC.Utils import Columns, SOCVersion
+from DataPreprocessing.Step1.SOC.CrosswalkData import CrosswalkData
+from DataPreprocessing.Step1.SOC.Utils import Columns, SOCVersion
 
 
 class ConsistentSOCCodes:

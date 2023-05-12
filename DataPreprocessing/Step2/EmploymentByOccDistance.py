@@ -2,9 +2,10 @@ from typing import List, Dict, Tuple
 
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 
-from DataProcessing.OccupationNetwork import OccupationNetwork
-from DataProcessing.OMSAData import OMSAData
+from DataPreprocessing.Step2.OccupationNetwork import OccupationNetwork
+from DataPreprocessing.Step2.OMSAData import OMSAData
 
 
 class EmploymentByOccDistance:
@@ -12,7 +13,10 @@ class EmploymentByOccDistance:
         self.omsa_data = omsa_data
         self.occ_network = occ_network
         self.quantiles = quantiles
+
+    def compute(self) -> Dict[Tuple[float, float], pd.DataFrame]:
         self.emp_within_dist_ranges = self._emp_within_dist_ranges(occ_codes=self.occ_network.get_all_occ_codes())
+        return self.emp_within_dist_ranges
 
     def _emp_within_dist_ranges(self, occ_codes: List[str]) -> Dict[Tuple[float, float], pd.DataFrame]:
         emp_within_dist_ranges = {}
@@ -21,13 +25,13 @@ class EmploymentByOccDistance:
             a = distance_ranges[i]
             b = distance_ranges[i+1]
             emp_within_dist_range = self._table_emp_within_dist_range__occ_loc_by_year(occ_codes=occ_codes, a=a, b=b)
-            emp_within_dist_ranges[(a, b)] = emp_within_dist_range
+            emp_within_dist_ranges[(self.quantiles[i], self.quantiles[i+1])] = emp_within_dist_range
 
         return emp_within_dist_ranges
 
     def _table_emp_within_dist_range__occ_loc_by_year(self, occ_codes: List[str], a: float, b: float) -> pd.DataFrame:
         emp_within_dist_range = []
-        for occ_code in occ_codes:
+        for occ_code in tqdm(occ_codes):
             emp_within_dist_range_from_occ = self._table_emp_within_dist_range_from_occ__loc_by_year(occ_code=occ_code, a=a, b=b)
             emp_within_dist_range_from_occ.index = pd.MultiIndex.from_product(iterables=[[occ_code], emp_within_dist_range_from_occ.index])
             emp_within_dist_range.append(emp_within_dist_range_from_occ)
@@ -41,12 +45,3 @@ class EmploymentByOccDistance:
         grouped_emp_data = emp_data.groupby(by=['cbsa_fips', 'year']).agg({'tot_emp': 'sum'}).reset_index()
         emp_within_dist_range = grouped_emp_data.pivot(columns='year', index='cbsa_fips', values='tot_emp').fillna(method='bfill', axis=1).fillna(0)
         return emp_within_dist_range
-
-
-if __name__ == '__main__':
-    omsa_data = OMSAData()
-    omsa_data.load()
-    occ_network = OccupationNetwork()
-    occ_network.load()
-    quantiles = np.linspace(0, 1, 4)
-    emp_by_occ_dist = EmploymentByOccDistance(omsa_data=omsa_data, occ_network=occ_network, quantiles=quantiles)

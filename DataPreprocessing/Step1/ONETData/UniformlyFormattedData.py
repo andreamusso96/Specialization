@@ -1,12 +1,13 @@
-from typing import List, Tuple
+from typing import Tuple
 
 import pandas as pd
 import numpy as np
+from tqdm import tqdm
 
-from DataPreprocessing.ONETData.Preformatting import PreFormatter, EducationDataPreFormatter
-from DataPreprocessing.ONETData.RawData import RawDataONET
-from DataPreprocessing.SOC.ConsistentCrosswalk import ConsistentSOCCrosswalk
-from DataPreprocessing.SOC.Utils import SOCVersion
+from DataPreprocessing.Step1.ONETData.Preformatting import PreFormatter, EducationDataPreFormatter
+from DataPreprocessing.Step1.ONETData.RawData import RawDataONET
+from DataPreprocessing.Step1.SOC.ConsistentCrosswalk import ConsistentSOCCrosswalk, CrosswalkData
+from DataPreprocessing.Step1.SOC.Utils import SOCVersion
 
 
 class MinMaxScaler:
@@ -47,7 +48,7 @@ class MinMaxScaler:
         return (val - scale_min) / (scale_max - scale_min)
 
 
-class UniformlyFormattedData:
+class UniformlyFormattedDataGeneralYear:
     def __init__(self, raw_data: RawDataONET, occ_crosswalk: ConsistentSOCCrosswalk):
         self.year = raw_data.year
         self.raw_data = raw_data
@@ -129,14 +130,27 @@ class UniformlyFormattedData:
         self.data.sort_values(by=['O*NET-SOC Code', 'Element ID'], inplace=True)
 
 
+class UniformlyFormattedData:
+    def __init__(self, year_start: int = 2019, year_end: int = 2019):
+        self.years = list(range(year_start, year_end + 1))
+        self.data = None
 
+    def load(self) -> pd.DataFrame:
+        occ_crosswalk = self._load_occ_crosswalk()
+        formatted_data = []
+        for year in tqdm(self.years):
+            raw_data = RawDataONET(year=year)
+            raw_data.load()
+            formatted_data_year = UniformlyFormattedDataGeneralYear(raw_data=raw_data, occ_crosswalk=occ_crosswalk)
+            formatted_data_year.load()
+            formatted_data.append(formatted_data_year)
 
-if __name__ == '__main__':
-    from DataPreprocessing.SOC.CrosswalkData import CrosswalkData
-    r = RawDataONET(year=2019)
-    r.load()
-    crosswalk_data = CrosswalkData()
-    crosswalk_data.load()
-    occ_crosswalk = ConsistentSOCCrosswalk(crosswalk_data)
-    f = UniformlyFormattedData(raw_data=r, occ_crosswalk=occ_crosswalk)
-    f.load()
+        self.data = pd.concat([f.data for f in formatted_data], axis=0, join='outer', ignore_index=True)
+        return self.data
+
+    @staticmethod
+    def _load_occ_crosswalk():
+        crosswalk_data = CrosswalkData()
+        crosswalk_data.load()
+        occ_crosswalk = ConsistentSOCCrosswalk(crosswalk_data)
+        return occ_crosswalk

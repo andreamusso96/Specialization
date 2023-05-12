@@ -1,5 +1,5 @@
 from DataPreprocessing.DataIO import DataIO
-from DataPreprocessing.RawData import RawData
+from DataPreprocessing.Step1.RawData import RawData
 
 
 class RawDataOMSA(RawData):

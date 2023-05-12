@@ -2,10 +2,11 @@ from typing import Tuple
 
 import pandas as pd
 import numpy as np
+from tqdm import tqdm
 
-from DataPreprocessing.OMSAData.RawData import RawDataOMSA
-from DataPreprocessing.SOC.ConsistentCrosswalk import ConsistentSOCCrosswalk
-from DataPreprocessing.OMSAData.CBSACrosswalk import ConsistentCBSACrosswalk
+from DataPreprocessing.Step1.OMSAData.RawData import RawDataOMSA
+from DataPreprocessing.Step1.SOC.ConsistentCrosswalk import ConsistentSOCCrosswalk, CrosswalkData
+from DataPreprocessing.Step1.OMSAData.CBSACrosswalk import ConsistentCBSACrosswalk
 
 
 class YearSpecificDataAttributes:
@@ -29,7 +30,7 @@ class YearSpecificDataAttributes:
         return hourly_wage, annual_wage
 
 
-class UniformlyFormattedData:
+class UniformlyFormattedDataGeneralYear:
     def __init__(self, raw_data: RawDataOMSA, occ_crosswalk: ConsistentSOCCrosswalk, cbsa_crosswalk: ConsistentCBSACrosswalk):
         self.year = raw_data.year
         self.data = raw_data.data.values()
@@ -184,7 +185,7 @@ class UniformlyFormattedData:
         return not code[-2:] == '00'
 
 
-class UniformlyFormattedData2019(UniformlyFormattedData):
+class UniformlyFormattedData2019(UniformlyFormattedDataGeneralYear):
     def __init__(self, raw_data: RawDataOMSA, occ_crosswalk: ConsistentSOCCrosswalk, cbsa_crosswalk: ConsistentCBSACrosswalk):
         super().__init__(raw_data=raw_data, occ_crosswalk=occ_crosswalk, cbsa_crosswalk=cbsa_crosswalk)
 
@@ -198,3 +199,45 @@ class UniformlyFormattedData2019(UniformlyFormattedData):
         states = cbsa_name.split(',')[1]
         prim_state = states.split('-')[0]
         return prim_state.strip()
+
+
+class UniformlyFormattedData:
+    def __init__(self, year_start: int = 2005, year_end: int = 2021):
+        self.years = list(range(year_start, year_end + 1))
+        self.data = None
+
+    def load(self) -> pd.DataFrame:
+        occ_crosswalk = self._load_occ_crosswalk()
+        cbsa_crosswalk = self._load_cbsa_crosswalk()
+        formatted_data = []
+        for year in tqdm(self.years):
+            raw_data = RawDataOMSA(year=year)
+            raw_data.load()
+            formatted_data.append(self._format_data(raw_data=raw_data, occ_crosswalk=occ_crosswalk, cbsa_crosswalk=cbsa_crosswalk))
+
+        self.data = pd.concat([f.data for f in formatted_data], axis=0, join='outer', ignore_index=True)
+        return self.data
+
+    @staticmethod
+    def _format_data(raw_data: RawDataOMSA, occ_crosswalk: ConsistentSOCCrosswalk,
+                     cbsa_crosswalk: ConsistentCBSACrosswalk):
+        if raw_data.year == 2019:
+            formatted_data_year = UniformlyFormattedData2019(raw_data=raw_data, occ_crosswalk=occ_crosswalk,
+                                                             cbsa_crosswalk=cbsa_crosswalk)
+        else:
+            formatted_data_year = UniformlyFormattedDataGeneralYear(raw_data=raw_data, occ_crosswalk=occ_crosswalk, cbsa_crosswalk=cbsa_crosswalk)
+
+        formatted_data_year.load()
+        return formatted_data_year
+
+    @staticmethod
+    def _load_occ_crosswalk():
+        crosswalk_data = CrosswalkData()
+        crosswalk_data.load()
+        occ_crosswalk = ConsistentSOCCrosswalk(crosswalk_data)
+        return occ_crosswalk
+
+    @staticmethod
+    def _load_cbsa_crosswalk():
+        cbsa_crosswalk = ConsistentCBSACrosswalk()
+        return cbsa_crosswalk

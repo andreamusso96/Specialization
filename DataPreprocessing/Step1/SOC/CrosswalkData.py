@@ -1,7 +1,7 @@
 import pandas as pd
 
 from config import DATA_PATH
-from DataPreprocessing.SOC.Utils import Columns
+from DataPreprocessing.Step1.SOC.Utils import Columns
 
 
 class CrosswalkFile:

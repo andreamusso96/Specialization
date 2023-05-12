@@ -1,9 +1,7 @@
-import os
-
 import pandas as pd
 
 from DataPreprocessing.DataIO import DataIO
-from DataPreprocessing.RawData import RawData
+from DataPreprocessing.Step1.RawData import RawData
 
 
 class RawDataONET(RawData):

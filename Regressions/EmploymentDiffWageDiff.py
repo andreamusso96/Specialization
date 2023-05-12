@@ -1,10 +1,8 @@
-from typing import List, Dict, Tuple
+from typing import Dict, Tuple
 
-import numpy as np
 import pandas as pd
-import statsmodels.api as sm
 
-from DataProcessing.EmploymentByOccDistance import EmploymentByOccDistance
+from DataPreprocessing.Step2.EmploymentByOccDistance import EmploymentByOccDistance
 from Regressions.Regression import Regression
 
 
